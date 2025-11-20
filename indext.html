@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Persuratan Digital - SAKTI | Dashboard Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <script>
+        // Konfigurasi Tailwind CSS kustom
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dpu-navy': '#1D4ED8', // Biru gelap
+                        'dpu-light': '#60A5FA', // Biru terang
+                        'dpu-dark': '#1E3A8A', // Biru sangat gelap
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.5s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS Kustom */
+        .sidebar-item {
+            /* Styling untuk item navigasi sidebar */
+            @apply flex items-center p-3 rounded-xl cursor-pointer transition duration-200 hover:bg-dpu-light hover:text-white;
+        }
+        .sidebar-item.active {
+            /* Styling untuk item navigasi yang aktif */
+            @apply bg-dpu-light text-white font-semibold shadow-lg;
+        }
+        .card {
+            /* Efek hover yang lebih jelas pada kartu */
+            @apply transition duration-300 transform hover:scale-[1.01] hover:shadow-xl;
+        }
+        /* Kelas untuk Bar Progres yang Diminta */
+        .progress-bar-container {
+            @apply w-full bg-gray-200 rounded-full h-2.5 mt-1;
+        }
+        .progress-bar {
+            @apply h-2.5 rounded-full;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-gray-50 font-sans">
+
+    <div id="splash-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-dpu-navy transition-opacity duration-700">
+        <div class="text-center p-8 bg-white rounded-2xl shadow-2xl max-w-lg mx-4 animate-fadeIn">
+            <h1 class="text-6xl font-extrabold text-dpu-dark mb-4">SAKTI</h1>
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Selamat Datang di Sistem Administrasi Surat Terintegrasi😊</h2>
+            <p class="text-md text-gray-500 mb-8">Mengelola surat masuk dan surat keluar dengan sistematis</p>
+            <button id="enter-dashboard" class="bg-dpu-light hover:bg-dpu-navy text-white font-bold py-3 px-8 rounded-xl transition duration-300 transform hover:scale-105 shadow-lg">
+                Masuk
+            </button>
+        </div>
+    </div>
+    
+    <div id="dashboard-container" class="flex flex-1 h-full hidden">
+        
+        <div id="sidebar" class="sidebar w-64 bg-dpu-dark text-white p-4 flex flex-col shrink-0">
+            <div class="mb-8 p-2 text-2xl font-extrabold text-dpu-light">
+                SAKTI
+            </div>
+
+            <nav class="space-y-2">
+                <div id="nav-dashboard" class="sidebar-item active" onclick="showPage('dashboard')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-7-7m7 7v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    Dashboard 
+                </div>
+                <div id="nav-incoming" class="sidebar-item" onclick="showPage('incoming')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l-3-3m3 3l3-3M8 9h8" /></svg>
+                    Surat Masuk
+                </div>
+                <div id="nav-outgoing" class="sidebar-item" onclick="showPage('outgoing')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l-3-3m3 3l3-3M8 9h8" /></svg>
+                    Surat Keluar
+                </div>
+            </nav>
+
+            <div class="mt-auto pt-4 text-xs text-gray-400 border-t border-gray-700">
+                Sistem Administrasi Surat Terintegrasi
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10 border-b-4 border-dpu-navy">
+                <h1 id="page-title" class="text-2xl font-semibold text-dpu-dark">Dashboard Utama</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600"></span>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 md:p-10">
+
+                <div id="page-dashboard" class="page-content space-y-8">
+                    
+                    <div class="bg-gradient-to-r from-dpu-navy to-dpu-light p-6 rounded-xl text-white shadow-2xl cursor-pointer hover:shadow-xl transition duration-300" onclick="alert('Ini adalah kartu pengumuman penting! Anda bisa mengklik kartu seperti ini untuk melihat detail pengumuman.');">
+                        <h2 class="text-4xl font-extrabold mb-1">Selamat Datang di SAKTI👋</h2>
+                        <p class="text-lg font-light opacity-90">Sistem Administrasi Surat Terintegrasi.</p>
+                        <div class="mt-4 pt-3 border-t border-blue-400 flex justify-between items-center">
+                            <p id="current-datetime" class="text-sm font-medium opacity-80"></p>
+                            <span class="text-xs font-semibold px-3 py-1 bg-white bg-opacity-20 rounded-full">Sistem Aktif</span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-3xl font-bold text-dpu-dark mb-6">Ringkasan Persuratan Bulan Ini</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        
+                        <div class="card bg-dpu-navy text-white p-6 rounded-xl cursor-pointer" onclick="showPage('incoming')">
+                            <p class="text-sm opacity-80">Total Surat Diproses</p>
+                            <div class="flex justify-between items-center">
+                                <p class="text-4xl font-extrabold mt-1">15</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs opacity-70 mt-2">Peningkatan 5% dari bulan lalu</p>
+                        </div>
+
+                        <div class="card bg-dpu-light text-white p-6 rounded-xl border-t-4 border-dpu-light cursor-pointer" onclick="showPage('incoming')">
+                            <p class="text-sm opacity-80">Surat Masuk Baru (Menunggu)</p>
+                            <div class="flex justify-between items-center">
+                                <p class="text-4xl font-extrabold mt-1 text-white">6</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs opacity-70 mt-2">Perlu tindak lanjut segera</p>
+                        </div>
+                        
+                        <div class="card bg-green-500 text-white p-6 rounded-xl border-t-4 border-green-500 cursor-pointer" onclick="showPage('outgoing')">
+                            <p class="text-sm opacity-80">Surat Keluar Terkirim</p>
+                            <div class="flex justify-between items-center">
+                                <p class="text-4xl font-extrabold mt-1 text-white">9</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs opacity-70 mt-2">Telah disetujui dan dikirim</p>
+                        </div>
+                        
+                        <div class="card bg-yellow-500 text-white p-6 rounded-xl border-t-4 border-yellow-500 cursor-pointer">
+                            <p class="text-sm opacity-80">Rata-rata Waktu Proses</p>
+                            <div class="flex justify-between items-center">
+                                <p class="text-4xl font-extrabold mt-1 text-white">2-3 Hari</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs opacity-70 mt-2">Target: &lt; 3 Hari</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <div class="card bg-white p-6 rounded-xl lg:col-span-2 shadow">
+                            <h3 class="text-xl font-semibold text-dpu-dark mb-4">Data Persuratan Digital</h3>
+                            <div class="space-y-4">
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm text-gray-600">
+                                        <span>Surat Tugas/Perjalanan Dinas</span>
+                                        <span>85%</span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar bg-blue-500" style="width: 85%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm text-gray-600">
+                                        <span>Memo Internal/Nota Dinas</span>
+                                        <span>60%</span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar bg-indigo-500" style="width: 60%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm text-gray-600">
+                                        <span>Surat Keputusan (SK)</span>
+                                        <span>40%</span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar bg-teal-500" style="width: 40%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-xs text-gray-500">Visualisasi ini menunjukkan adopsi tertinggi pada jenis Surat Tugas.</p>
+                        </div>
+
+                        <div class="card bg-white p-6 rounded-xl shadow">
+                            <h3 class="text-xl font-semibold text-dpu-dark mb-4">Aktivitas Terbaru</h3>
+                            <ul class="space-y-3 text-sm">
+                                <li class="p-3 bg-blue-50 rounded-lg border-l-4 border-dpu-light"><p class="font-medium text-dpu-dark">Disposisi Surat Masuk: Undangan Rapat Koordinasi</p><p class="text-xs text-gray-500">2 menit lalu | Oleh: Kabid Jalan</p></li>
+                                <li class="p-3 bg-blue-50 rounded-lg border-l-4 border-dpu-light"><p class="font-medium text-dpu-dark">Surat Keluar Baru: Surat Tugas Survei Jembatan</p><p class="text-xs text-gray-500">1 jam lalu | Oleh: Staf Administrasi</p></li>
+                                <li class="p-3 bg-blue-50 rounded-lg border-l-4 border-dpu-light"><p class="font-medium text-dpu-dark">Arsip Surat Keputusan No. 123/SK/2025</p><p class="text-xs text-gray-500">4 jam lalu | Status: Selesai</p></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="page-incoming" class="page-content hidden space-y-8">
+                    <h2 class="text-3xl font-bold text-dpu-dark mb-6"> (Inbox Digital)</h2>
+                
+                    <div class="border-2 border-dashed border-dpu-light p-8 rounded-xl text-center bg-blue-50 hover:bg-blue-100 transition duration-300 cursor-pointer" onclick="document.getElementById('file-upload-input-incoming').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-dpu-navy mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                        </svg>
+                        <p class="font-semibold text-dpu-dark">Seret & Lepas file Surat Masuk di sini</p>
+                        <p class="text-sm text-gray-500">atau klik untuk Pilih File (PDF, JPG, DOCX, dll.)</p>
+                        <input type="file" id="file-upload-input-incoming" class="hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleFileUpload(event, 'incoming')">
+                    </div>
+
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex space-x-3">
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm text-dpu-dark focus:ring-dpu-light focus:border-dpu-light">
+                                <option>Semua Status</option>
+                                <option>Menunggu Disposisi</option>
+                                <option>Sudah Didisposisi</option>
+                                <option>Diarsipkan</option>
+                            </select>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm text-dpu-dark focus:ring-dpu-light focus:border-dpu-light">
+                        </div>
+                        
+                        <button class="bg-dpu-navy hover:bg-dpu-dark text-white font-medium py-2 px-4 rounded-lg flex items-center shadow-lg transition duration-300" onclick="openGoogleDoc()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Buat Dokumen Laporan Baru
+                        </button>
+                    </div>
+
+                    <div id="incoming-list" class="space-y-4">
+                        </div>
+                </div>
+
+                <div id="page-outgoing" class="page-content hidden space-y-8">
+                    <h2 class="text-3xl font-bold text-dpu-dark mb-6">(Arsip Terkirim)</h2>
+
+                    <div class="border-2 border-dashed border-dpu-light p-8 rounded-xl text-center bg-blue-50 hover:bg-blue-100 transition duration-300 cursor-pointer" onclick="document.getElementById('file-upload-input-outgoing').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-dpu-navy mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8" />
+                        </svg>
+                        <p class="font-semibold text-dpu-dark">Seret & Lepas file Arsip Surat Keluar di sini</p>
+                        <p class="text-sm text-gray-500">atau klik untuk Pilih File (PDF, DOCX, dll.)</p>
+                        <input type="file" id="file-upload-input-outgoing" class="hidden" multiple accept=".pdf,.doc,.docx" onchange="handleFileUpload(event, 'outgoing')">
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 bg-blue-50 p-4 rounded-xl border border-dpu-light">
+                        <div class="flex space-x-3">
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm text-dpu-dark focus:ring-dpu-light focus:border-dpu-light">
+                                <option>Semua Jenis</option><option>Surat Tugas</option><option>Surat Edaran</option><option>Nota Dinas</option>
+                            </select>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm text-dpu-dark focus:ring-dpu-light focus:border-dpu-light">
+                                <option>Semua Status</option><option>Draft</option><option>Menunggu Persetujuan</option><option>Terkirim</option>
+                            </select>
+                        </div>
+                        
+                        <button class="bg-dpu-navy hover:bg-dpu-dark text-white font-medium py-2 px-4 rounded-lg flex items-center shadow-lg transition duration-300" onclick="openGoogleDoc()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Buat Dokumen Surat Baru
+                        </button>
+                    </div>
+
+                    <div id="outgoing-list" class="space-y-4">
+                        </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Data Dummy untuk Surat Masuk
+        let incomingLetters = [
+            { id: 1, no: '001/UND/RAKOR/IX/2025', perihal: 'Undangan Rapat Koordinasi Anggaran Proyek', pengirim: 'Sekretariat Jenderal PUPR', diterima: '20/09/2025', status: 'Menunggu Disposisi', status_class: 'yellow', file_type: 'pdf', file_url: null, file_name: 'undangan_rakor_2025.pdf' },
+            { id: 2, no: '005/SPT/2025/BALAI', perihal: 'Laporan Progres Proyek Pembangunan Jembatan', pengirim: 'Balai Besar Wilayah 1', diterima: '18/09/2025', status: 'Sudah Didisposisi', status_class: 'green', file_type: 'jpg', file_url: null, file_name: 'laporan_proyek_jembatan.jpg' },
+            { id: 3, no: '002/PENG/BPN/2025', perihal: 'Pemberitahuan Peninjauan Lahan Tol Baru', pengirim: 'Badan Pertanahan Nasional', diterima: '15/09/2025', status: 'Tindak Lanjut Mendesak', status_class: 'red', file_type: 'pdf', file_url: null, file_name: 'pemberitahuan_lahan_tol.pdf' },
+        ];
+
+        // Data Dummy untuk Surat Keluar
+        let outgoingLetters = [
+            { id: 10, no: '012/ST/SUBBAG/X/2025', jenis: 'Surat Tugas', tujuan: 'Divisi Pengadaan Aset', kirim: '25/09/2025', dibuat: 'Staf Admin', status: 'Terkirim', status_class: 'green', file_type: 'pdf', file_url: null, file_name: 'ST_012_2025.pdf' },
+            { id: 11, no: '015/ND/KABID/X/2025', jenis: 'Nota Dinas', tujuan: 'Kepala Dinas DPU BM', kirim: '26/09/2025', dibuat: 'Kabid Jalan', status: 'Menunggu Persetujuan', status_class: 'yellow', file_type: 'doc', file_url: null, file_name: 'ND_015_2025.doc' },
+            { id: 12, no: '010/SE/DIREKT/IX/2025', jenis: 'Surat Edaran', tujuan: 'Seluruh Staf Teknis', kirim: '19/09/2025', dibuat: 'Sekretaris', status: 'Diarsipkan', status_class: 'gray', file_type: 'pdf', file_url: null, file_name: 'SE_010_2025.pdf' },
+        ];
+
+
+        function updateDateTime() {
+            const dtElement = document.getElementById('current-datetime');
+            if (dtElement) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                dtElement.textContent = now.toLocaleDateString('id-ID', options);
+            }
+        }
+
+        // FUNGSI UNTUK MEMBUKA GOOGLE DOCS KOSONG
+        function openGoogleDoc() {
+            const googleDocUrl = 'https://docs.google.com/document/create';
+            // Membuka URL di tab baru
+            window.open(googleDocUrl, '_blank');
+        }
+        
+        // FUNGSI UNTUK MERENDER DAFTAR SURAT MASUK
+        function renderIncomingList() {
+            const listContainer = document.getElementById('incoming-list');
+            if (!listContainer) return;
+            
+            listContainer.innerHTML = ''; 
+
+            incomingLetters.forEach(letter => {
+                let borderColor = '';
+                let statusBg = '';
+                let statusText = '';
+
+                switch (letter.status_class) {
+                    case 'yellow':
+                        borderColor = 'border-yellow-500'; statusBg = 'bg-yellow-200'; statusText = 'text-yellow-800'; break;
+                    case 'green':
+                        borderColor = 'border-green-500'; statusBg = 'bg-green-200'; statusText = 'text-green-800'; break;
+                    case 'red':
+                        borderColor = 'border-red-500'; statusBg = 'bg-red-200'; statusText = 'text-red-800'; break;
+                    default:
+                        borderColor = 'border-dpu-light'; statusBg = 'bg-blue-200'; statusText = 'text-dpu-dark';
+                }
+
+                // Logika untuk tombol Unduh File jika ada file_url (hasil upload)
+                const actionButton = letter.file_url ? 
+                    `<a href="${letter.file_url}" download="${letter.file_name}" class="text-green-600 hover:text-green-800 text-sm font-bold flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Unduh File
+                    </a>`
+                    :
+                    `<button class="text-dpu-navy hover:text-dpu-light text-sm font-medium" onclick="simulateFilePreview('${letter.perihal}', '${letter.file_type}')">Lihat Detail (Buka)</button>`;
+
+
+                const letterHTML = `
+                    <div class="card bg-white p-5 rounded-xl border-l-8 ${borderColor} flex justify-between items-center transition duration-300">
+                        <div>
+                            <p class="text-lg font-bold text-dpu-dark">${letter.no}</p>
+                            <p class="text-sm text-gray-600">Perihal: ${letter.perihal}</p>
+                            <p class="text-xs text-gray-400 mt-1">Pengirim: ${letter.pengirim} | Diterima: ${letter.diterima}</p>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="px-3 py-1 text-xs font-semibold ${statusText} ${statusBg} rounded-full">${letter.status}</span>
+                            ${actionButton}
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', letterHTML);
+            });
+        }
+        
+        // FUNGSI UNTUK MERENDER DAFTAR SURAT KELUAR
+        function renderOutgoingList() {
+            const listContainer = document.getElementById('outgoing-list');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = ''; 
+
+            outgoingLetters.forEach(letter => {
+                let borderColor = '';
+                let statusBg = '';
+                let statusText = '';
+                let actionText = '';
+                let actionClick = '';
+
+                switch (letter.status_class) {
+                    case 'yellow':
+                        borderColor = 'border-yellow-500'; statusBg = 'bg-yellow-200'; statusText = 'text-yellow-800'; actionText = 'Edit Draft'; actionClick = `simulateFilePreview('Draft ${letter.jenis} ${letter.no}', '${letter.file_type}')`; break;
+                    case 'green':
+                        borderColor = 'border-green-500'; statusBg = 'bg-green-200'; statusText = 'text-green-800'; actionText = 'Lihat Dokumen (Buka)'; actionClick = `simulateFilePreview('${letter.jenis} ${letter.no}', '${letter.file_type}')`; break;
+                    case 'gray': 
+                        borderColor = 'border-gray-400'; statusBg = 'bg-gray-200'; statusText = 'text-gray-800'; actionText = 'Lihat Dokumen (Buka)'; actionClick = `simulateFilePreview('${letter.jenis} ${letter.no}', '${letter.file_type}')`; break;
+                    default:
+                        borderColor = 'border-dpu-light'; statusBg = 'bg-blue-200'; statusText = 'text-dpu-dark'; actionText = 'Lihat Dokumen (Buka)'; actionClick = `simulateFilePreview('${letter.jenis} ${letter.no}', '${letter.file_type}')`; 
+                }
+                
+                // Logika untuk tombol Unduh File jika ada file_url (hasil upload)
+                const actionButton = letter.file_url ? 
+                    `<a href="${letter.file_url}" download="${letter.file_name}" class="text-green-600 hover:text-green-800 text-sm font-bold flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Unduh File
+                    </a>`
+                    :
+                    `<button class="text-dpu-navy hover:text-dpu-light text-sm font-medium" onclick="${actionClick}">${actionText}</button>`;
+
+                const letterHTML = `
+                    <div class="card bg-white p-5 rounded-xl border-r-8 ${borderColor} flex justify-between items-center transition duration-300">
+                        <div>
+                            <p class="text-lg font-bold text-dpu-dark">${letter.no}</p>
+                            <p class="text-sm text-gray-600">Jenis: ${letter.jenis} | Tujuan: ${letter.tujuan}</p>
+                            <p class="text-xs text-gray-400 mt-1">Tanggal Kirim: ${letter.kirim} | Dibuat: ${letter.dibuat}</p>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="px-3 py-1 text-xs font-semibold ${statusText} ${statusBg} rounded-full">${letter.status}</span>
+                            ${actionButton}
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', letterHTML);
+            });
+        }
+
+        // FUNGSI UNTUK MENANGANI UPLOAD FILE (Surat Masuk & Surat Keluar)
+        function handleFileUpload(event, type) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const today = new Date().toLocaleDateString('id-ID');
+            let targetArray;
+            let nextId;
+            let objectType;
+            let renderFunction;
+
+            if (type === 'incoming') {
+                targetArray = incomingLetters;
+                nextId = targetArray.length > 0 ? targetArray[0].id + 1 : 1; 
+                objectType = { 
+                    perihal: 'Surat Masuk Digital', 
+                    pengirim: 'Dokumen Upload Staf', 
+                    diterima: today,
+                    status: 'Tersimpan Lokal',
+                    status_class: 'green',
+                    
+                };
+                renderFunction = renderIncomingList;
+            } else if (type === 'outgoing') {
+                targetArray = outgoingLetters;
+                nextId = targetArray.length > 0 ? targetArray[0].id + 1 : 10;
+                objectType = {
+                    jenis: 'Arsip Kirim',
+                    tujuan: 'Arsip Lokal',
+                    kirim: today,
+                    dibuat: 'Dokumen Upload Staf',
+                    status: 'Tersimpan Lokal',
+                    status_class: 'gray',
+                };
+                renderFunction = renderOutgoingList;
+            } else {
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileNameParts = file.name.split('.');
+                const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop().toLowerCase() : 'unknown';
+                
+                const fileUrl = URL.createObjectURL(file); 
+                
+                const newLetter = {
+                    id: nextId + i,
+                    no: `[UPLOAD] ${nextId + i}/${fileExtension.toUpperCase()}/${new Date().getFullYear()}`,
+                    file_name: file.name,
+                    file_url: fileUrl, 
+                    file_type: fileExtension,
+                    
+                    // Merge dengan properti spesifik tipe surat
+                    ...(type === 'incoming' ? { 
+                        perihal: `${objectType.perihal}: ${file.name.substring(0, file.name.lastIndexOf('.')) || file.name}`, 
+                        pengirim: objectType.pengirim,
+                        diterima: objectType.diterima,
+                    } : {
+                        jenis: objectType.jenis,
+                        tujuan: objectType.tujuan,
+                        kirim: objectType.kirim,
+                        dibuat: objectType.dibuat,
+                    }),
+
+                    status: objectType.status,
+                    status_class: objectType.status_class,
+                };
+
+                // Tambahkan file baru di awal array
+                targetArray.unshift(newLetter); 
+            }
+
+            alert(`Upload ${files.length} file berhasil disimulasikan ke daftar ${type === 'incoming' ? 'Surat Masuk' : 'Surat Keluar'}! File-file tersebut kini dapat diunduh (download) melalui link "Unduh File" di daftar surat.`);
+
+            // Render ulang daftar untuk menampilkan data baru
+            renderFunction();
+            event.target.value = ''; // Reset input file agar file yang sama bisa diupload lagi
+        }
+
+        function simulateFilePreview(subject, type) {
+            alert(`TAMPILAN DETAIL SURAT: ${subject} \n\nTipe file: ${type.toUpperCase()}\n\nIni adalah simulasi tampilan preview dokumen. Di sistem nyata, akan muncul PDF viewer, gambar, atau opsi download.`);
+        }
+        
+        // FUNGSI UNTUK MENGGANTI HALAMAN (Tab)
+        function showPage(pageId) {
+            // Sembunyikan semua konten halaman
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.add('hidden');
+            });
+
+            // Tampilkan halaman yang diminta
+            const targetPage = document.getElementById('page-' + pageId);
+            const targetTitle = document.getElementById('page-title');
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            // Atur judul halaman dan status navigasi
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const navItem = document.getElementById('nav-' + pageId);
+            if (navItem) {
+                navItem.classList.add('active');
+                
+                // Atur Judul Berdasarkan Halaman
+                if (pageId === 'dashboard') {
+                    targetTitle.textContent = 'Dashboard Utama';
+                    // Render ulang daftar agar data yang diupload muncul (jika ada)
+                    renderIncomingList(); 
+                    renderOutgoingList(); 
+                } else if (pageId === 'incoming') {
+                    targetTitle.textContent = 'Data Surat Masuk';
+                    renderIncomingList();
+                } else if (pageId === 'outgoing') {
+                    targetTitle.textContent = 'Data Surat Keluar';
+                    renderOutgoingList();
+                }
+            }
+        }
+
+        // FUNGSI INISIALISASI
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            setInterval(updateDateTime, 1000); // Perbarui waktu setiap detik
+            
+            // Atur event listener untuk tombol Masuk
+            const enterButton = document.getElementById('enter-dashboard');
+            const splashScreen = document.getElementById('splash-screen');
+            const dashboardContainer = document.getElementById('dashboard-container');
+            
+            enterButton.addEventListener('click', () => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.classList.add('hidden');
+                    dashboardContainer.classList.remove('hidden');
+                    dashboardContainer.classList.add('animate-fadeIn'); // Tambahkan animasi fade-in ke dashboard
+                    showPage('dashboard'); // Tampilkan halaman dashboard awal
+                }, 500); // Menunggu transisi opacity selesai
+            });
+
+            // Pastikan fungsi render dipanggil saat halaman dimuat (untuk initial state)
+            renderIncomingList();
+            renderOutgoingList();
+        });
+    </script>
+</body>
+</html>
